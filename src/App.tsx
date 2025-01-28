@@ -9,6 +9,7 @@ import SOSExamRescueKit from './components/features/sos_exam_prep_kit/SOS_ExamRe
 import FlowChartGenerator from './components/features/flowchart_generator/FlowchartGenerator';
 import PuzzleSolver from './components/features/puzzle_solver/PuzzleSolver';
 import AITutor from './components/features/ai_tutor/AI_Tutor';
+import KnowledgeCheckQuiz from './components/features/knowledge_check/Knowledge_Check'
 
 function AppContent() {
   const location = useLocation();
@@ -25,6 +26,7 @@ function AppContent() {
         <Route path="/flowchart_generator" element={<FlowChartGenerator />} />
         <Route path="/puzzle_solver" element={<PuzzleSolver />} />
         <Route path="/ai_tutor" element={<AITutor />} />
+        <Route path="/knowledge_check" element={<KnowledgeCheckQuiz />} />
       </Routes>
     </Layout>
   );
