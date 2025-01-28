@@ -1,7 +1,7 @@
 import React from 'react';
 import FeatureCard from './FeatureCard';
 import { Feature } from '../../types';
-import { BookOpen, Brain, Map, Book, Lightbulb, Puzzle as PuzzlePiece, FileCode, Calculator } from 'lucide-react';
+import { BookOpen, Brain, Map, Book, Lightbulb, Puzzle as PuzzlePiece, FileCode, Pen ,CheckSquare} from 'lucide-react';
 
 const features: Feature[] = [
   {
@@ -18,13 +18,13 @@ const features: Feature[] = [
     icon: 'Brain',
     path: '/ai_tutor'
   },
-  {
-    id: '3',
-    title: 'Roadmap Generator',
-    description: 'Create custom learning paths for any domain',
-    icon: 'Map',
-    path: '/flowchart_generator'
-  },
+ {
+  id: '3',
+  title: 'Knowledge Check',
+  description: 'Test your understanding with topic-specific quizzes',
+  icon: 'CheckSquare',
+  path: '/quiz'
+},
   {
     id: '4',
     title: 'Resource Provider',
@@ -43,7 +43,7 @@ const features: Feature[] = [
     id: '6',
     title: 'Puzzle Solver',
     description: 'Get step-by-step solutions for complex problems',
-    icon: 'PuzzlePiece',
+    icon: 'Puzzle',
     path: '/puzzle_solver'
   },
   {
@@ -55,10 +55,10 @@ const features: Feature[] = [
   },
   {
     id: '8',
-    title: 'Calculator',
-    description: 'Advanced calculator for quick computations',
-    icon: 'Calculator',
-    path: '/calculator'
+    title: 'Smart_Canvas',
+    description:'Draw or write problems to get step-by-step solutions',
+    icon: 'Pen',
+    path: '/canvas'
   }
 ];
 
@@ -79,7 +79,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ">
         {features.map((feature, index) => (
           <div
             key={feature.id}
