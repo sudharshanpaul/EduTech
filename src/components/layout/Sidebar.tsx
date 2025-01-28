@@ -1,17 +1,20 @@
 import React from 'react';
 import { Link } from 'react-router-dom'; // Add this import
-import { Home, BookOpen, Brain, Map, Book, Lightbulb, Puzzle as PuzzlePiece, FileCode, Settings, LogOut } from 'lucide-react';
+import { Home, BookOpen, Brain, Map, Book, Lightbulb, Puzzle ,CheckSquare , Pen as PuzzlePiece, FileCode, Settings, LogOut ,Pen,} from 'lucide-react';
 import { NavigationItem } from '../../types';
 
 const navigation: NavigationItem[] = [
   { name: 'Dashboard', path: '/', icon: 'Home' },
   { name: 'BOS Generator', path: '/bos', icon: 'BookOpen' },
   { name: 'AI Tutor', path: '/ai_tutor', icon: 'Brain' },
+  { name: 'Knowledge Check', path: '/quiz', icon: 'CheckSquare' },
   { name: 'Flowchart Generator', path: '/flowchart_generator', icon: 'Map' },
   { name: 'Resource Generator', path: '/resource_generator', icon: 'Book' },
   { name: 'SOS Exam Prep', path: '/sos_exam_prep_kit', icon: 'Lightbulb' },
   { name: 'Puzzle Solver', path: '/puzzle_solver', icon: 'PuzzlePiece' },
-  { name: 'Code Generator', path: '/code_generator', icon: 'FileCode' }, // Fixed path to match route
+  { name: 'Code Generator', path: '/code_generator', icon: 'FileCode' },
+  { name: 'Smart Canvas', path: '/canvas', icon: 'Pen' },
+   // Fixed path to match route
 ];
 
 const Sidebar = () => {
@@ -22,8 +25,10 @@ const Sidebar = () => {
     Map: <Map className="w-5 h-5" />,
     Book: <Book className="w-5 h-5" />,
     Lightbulb: <Lightbulb className="w-5 h-5" />,
-    PuzzlePiece: <PuzzlePiece className="w-5 h-5" />,
+    PuzzlePiece: <Puzzle className="w-5 h-5" />,
     FileCode: <FileCode className="w-5 h-5" />,
+    CheckSquare: <CheckSquare className="w-5 h-5" />,
+    Pen: <Pen className="w-5 h-5" />,
   };
 
   return (
