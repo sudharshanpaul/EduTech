@@ -1,6 +1,7 @@
+# learning_resources.py
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
@@ -42,56 +43,58 @@ class Resources(BaseModel):
 
 class TopicRequest(BaseModel):
     topic: str
-    api_key: Optional[str] = None
 
 # Get API key from environment variable
-DEFAULT_GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_API_KEY = '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'
+if not GROQ_API_KEY:
+    raise ValueError("GROQ_API_KEY must be set in environment variables")
 
 # Initialize prompt template
 PROMPT_TEMPLATE = ChatPromptTemplate.from_template("""
 Generate a comprehensive list of learning resources for the topic: {topic}
 
 Provide the response as a JSON with the following structure:
-{
+{{
     "books": [
-        {
+        {{
             "title": "Book Title",
             "author": "Author Name",
             "description": "Brief book description"
-        }
+        }}
     ],
     "online_courses": [
-        {
+        {{
             "platform": "Course Platform",
             "course_name": "Course Title",
             "url": "Course URL",
             "description": "Course overview"
-        }
+        }}
     ],
     "websites": [
-        {
+        {{
             "name": "Website Name",
             "url": "Website URL",
             "description": "What makes this resource valuable"
-        }
+        }}
     ],
     "youtube_channels": [
-        {
+        {{
             "channel_name": "Channel Name",
             "url": "Channel URL",
             "description": "Why this channel is helpful"
-        }
+        }}
     ]
-}
+}}
 """)
 
-async def generate_resources(topic: str, api_key: str) -> Resources:
+
+async def generate_resources(topic: str) -> Resources:
     """Generate learning resources using Groq LLM."""
     try:
         llm = ChatGroq(
             temperature=0.7,
             model_name="gemma2-9b-it",
-            groq_api_key=api_key
+            groq_api_key=GROQ_API_KEY
         )
         
         output_parser = JsonOutputParser()
@@ -104,21 +107,11 @@ async def generate_resources(topic: str, api_key: str) -> Resources:
 
 @app.post("/generate-resources/", response_model=Resources)
 async def create_resources(request: TopicRequest):
-    """
-    Generate learning resources for a given topic.
-    If no API key is provided, uses the default API key from environment variables.
-    """
+    """Generate learning resources for a given topic."""
     if not request.topic:
         raise HTTPException(status_code=400, detail="Topic cannot be empty")
     
-    api_key = request.api_key or DEFAULT_GROQ_API_KEY
-    if not api_key:
-        raise HTTPException(
-            status_code=400,
-            detail="No API key provided and no default API key found in environment variables"
-        )
-    
-    return await generate_resources(request.topic, api_key)
+    return await generate_resources(request.topic)
 
 @app.get("/")
 async def root():
@@ -130,7 +123,3 @@ async def root():
             "/generate-resources/": "POST - Generate learning resources for a topic"
         }
     }
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
