@@ -6,11 +6,11 @@ import { NavigationItem } from '../../types';
 const navigation: NavigationItem[] = [
   { name: 'Dashboard', path: '/', icon: 'Home' },
   { name: 'BOS Generator', path: '/bos', icon: 'BookOpen' },
-  { name: 'AI Tutor', path: '/tutor', icon: 'Brain' },
-  { name: 'Roadmap', path: '/roadmap', icon: 'Map' },
-  { name: 'Resources', path: '/resources', icon: 'Book' },
-  { name: 'SOS Exam Prep', path: '/exam-prep', icon: 'Lightbulb' },
-  { name: 'Puzzle Solver', path: '/puzzle', icon: 'PuzzlePiece' },
+  { name: 'AI Tutor', path: '/ai_tutor', icon: 'Brain' },
+  { name: 'Flowchart Generator', path: '/flowchart_generator', icon: 'Map' },
+  { name: 'Resource Generator', path: '/resource_generator', icon: 'Book' },
+  { name: 'SOS Exam Prep', path: '/sos_exam_prep_kit', icon: 'Lightbulb' },
+  { name: 'Puzzle Solver', path: '/puzzle_solver', icon: 'PuzzlePiece' },
   { name: 'Code Generator', path: '/code_generator', icon: 'FileCode' }, // Fixed path to match route
 ];
 

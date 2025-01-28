@@ -16,35 +16,35 @@ const features: Feature[] = [
     title: 'AI Tutor',
     description: 'Get personalized help with multiple teaching styles',
     icon: 'Brain',
-    path: '/tutor'
+    path: '/ai_tutor'
   },
   {
     id: '3',
     title: 'Roadmap Generator',
     description: 'Create custom learning paths for any domain',
     icon: 'Map',
-    path: '/roadmap'
+    path: '/flowchart_generator'
   },
   {
     id: '4',
     title: 'Resource Provider',
     description: 'Find curated learning resources and materials',
     icon: 'Book',
-    path: '/resources'
+    path: '/resource_generator'
   },
   {
     id: '5',
     title: 'SOS Exam Prep',
     description: 'Quick exam preparation with cheat sheets and mnemonics',
     icon: 'Lightbulb',
-    path: '/exam-prep'
+    path: '/sos_exam_prep_kit'
   },
   {
     id: '6',
     title: 'Puzzle Solver',
     description: 'Get step-by-step solutions for complex problems',
     icon: 'PuzzlePiece',
-    path: '/puzzle'
+    path: '/puzzle_solver'
   },
   {
     id: '7',
