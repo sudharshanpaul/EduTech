@@ -1,149 +1,130 @@
 import React, { useState } from 'react';
-import { Upload, Image as ImageIcon, FileText, Loader2 } from 'lucide-react';
+import { Upload, Send, Loader2 } from 'lucide-react';
 
 const PuzzleSolver = () => {
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [problemDescription, setProblemDescription] = useState<string>('');
-  const [solution, setSolution] = useState<string>('');
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [problemDescription, setProblemDescription] = useState('');
+  const [solution, setSolution] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
     if (file) {
+      setSelectedImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setUploadedImage(reader.result as string);
+        setImagePreview(reader.result);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSolveProblem = () => {
+  const handleSubmit = async () => {
+    if (!selectedImage || !problemDescription) {
+      setError('Please provide both an image and problem description.');
+      return;
+    }
+
     setLoading(true);
+    setError('');
     setSolution('');
 
-    // Simulate API call
-    setTimeout(() => {
-      // Mock data for demonstration
-      setSolution(
-        `The solution to the puzzle involves the following steps:
-        1. Identify the key patterns in the image.
-        2. Analyze the relationships between the elements.
-        3. Apply logical reasoning to deduce the solution.
-        4. Verify the solution against the problem description.`
-      );
+    const formData = new FormData();
+    formData.append('image', selectedImage);
+    formData.append('problem_description', problemDescription);
+
+    try {
+      const response = await fetch('http://localhost:8000/solve-puzzle', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to generate solution');
+      }
+
+      const data = await response.json();
+      setSolution(data.solution);
+    } catch (err) {
+      setError(err.message || 'Failed to get solution. Please try again.');
+    } finally {
       setLoading(false);
-    }, 2000);
+    }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in">
-      {/* Header */}
-      <div className="bg-white rounded-2xl p-8 shadow-lg mb-8 animate-slide-in-top">
-        <div className="flex items-center space-x-4">
-          <Upload className="w-8 h-8 text-blue-600 transition-transform duration-300 hover:scale-110" />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Puzzle Solver</h1>
-            <p className="text-gray-600">Upload a puzzle image and get the solution</p>
-          </div>
-        </div>
-      </div>
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="bg-white rounded-xl p-6 shadow-lg">
+        <h1 className="text-2xl font-bold mb-6">🖼️ AI Puzzle Solver</h1>
 
-      <div className="grid gap-8">
-        {/* Upload Section */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg transform transition-all duration-500 hover:shadow-xl animate-slide-in-left">
-          <h2 className="text-lg font-semibold mb-6 text-gradient bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Upload Puzzle Image
-          </h2>
-          <div className="space-y-6">
-            <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-all duration-300">
-              {uploadedImage ? (
-                <img
-                  src={uploadedImage}
-                  alt="Uploaded Puzzle"
-                  className="w-full h-full object-cover rounded-lg"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center space-y-2">
-                  <Upload className="w-8 h-8 text-gray-400" />
-                  <p className="text-gray-500">Click to upload or drag and drop</p>
-                  <p className="text-sm text-gray-400">PNG, JPG, or JPEG</p>
-                </div>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-            </label>
-          </div>
-        </div>
-
-        {/* Display Uploaded Image Fully */}
-        {uploadedImage && (
-          <div className="bg-white rounded-2xl p-6 shadow-lg transform transition-all duration-500 hover:shadow-xl animate-slide-in-left">
-            <h2 className="text-lg font-semibold mb-6 text-gradient bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Uploaded Image
-            </h2>
-            <div className="flex justify-center">
-              <img
-                src={uploadedImage}
-                alt="Uploaded Puzzle"
-                className="max-w-full h-auto rounded-lg shadow-md"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Problem Description Section */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg transform transition-all duration-500 hover:shadow-xl animate-slide-in-left">
-          <h2 className="text-lg font-semibold mb-6 text-gradient bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Describe the Problem
-          </h2>
-          <div className="space-y-6">
-            <textarea
-              value={problemDescription}
-              onChange={(e) => setProblemDescription(e.target.value)}
-              placeholder="e.g., Solve this Sudoku puzzle, Find the missing piece..."
-              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                        transition-all duration-300 hover:border-blue-300 focus:scale-[1.02] resize-none"
-              rows={4}
+        <div className="space-y-4">
+          {/* Image Upload */}
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+              id="image-upload"
             />
-
-            <button
-              onClick={handleSolveProblem}
-              disabled={!uploadedImage || !problemDescription.trim() || loading}
-              className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
-                        hover:scale-[1.02] disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed 
-                        transition-all duration-300 shadow-md hover:shadow-lg"
+            <label
+              htmlFor="image-upload"
+              className="cursor-pointer flex flex-col items-center"
             >
-              {loading ? 'Solving...' : 'Solve Problem'}
-            </button>
+              <Upload className="w-8 h-8 text-gray-400 mb-2" />
+              <span className="text-sm text-gray-500">Upload an image</span>
+            </label>
+            {imagePreview && (
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="mt-4 max-h-64 mx-auto rounded-lg"
+              />
+            )}
           </div>
-        </div>
 
-        {/* Solution Section */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg animate-slide-in-right">
-          <h2 className="text-lg font-semibold mb-6">Solution</h2>
+          {/* Problem Description */}
+          <textarea
+            value={problemDescription}
+            onChange={(e) => setProblemDescription(e.target.value)}
+            placeholder="Describe the problem you want solved..."
+            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            rows={4}
+          />
 
-          {loading ? (
-            <div className="flex flex-col items-center justify-center h-64 space-y-4">
-              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-              <p className="text-gray-600">Solving the puzzle...</p>
-            </div>
-          ) : solution ? (
-            <div className="bg-gray-50 rounded-xl p-5 transform transition-all duration-300 hover:scale-[1.01]">
-              <div className="flex items-center space-x-2 mb-4">
-                <FileText className="w-5 h-5 text-green-600" />
-                <h3 className="font-semibold text-gray-800">Generated Solution</h3>
-              </div>
-              <pre className="whitespace-pre-wrap text-gray-900">{solution}</pre>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-64 text-gray-400 animate-pulse">
-              <ImageIcon className="w-12 h-12 mb-2" />
-              <p>Upload an image and describe the problem to get the solution</p>
+          {/* Submit Button */}
+          <button
+            onClick={handleSubmit}
+            disabled={loading || !selectedImage || !problemDescription}
+            className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
+                     disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                Solve Puzzle
+              </>
+            )}
+          </button>
+
+          {/* Error Message */}
+          {error && (
+            <div className="p-3 bg-red-100 text-red-700 rounded-lg">{error}</div>
+          )}
+
+          {/* Solution */}
+          {solution && (
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <h2 className="font-semibold mb-2">Solution:</h2>
+              <p className="whitespace-pre-wrap">{solution}</p>
             </div>
           )}
         </div>
