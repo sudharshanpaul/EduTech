@@ -1,420 +1,318 @@
-import React, { useState, useEffect, memo, useCallback } from 'react';
-import { Book, Volume2, Brain, ChevronRight, AlertCircle, BarChart, RefreshCcw } from 'lucide-react';
+import React, { useState } from 'react';
+import { Loader2, CheckCircle, XCircle, BookOpen, Rocket } from 'lucide-react';
 
-// Extracted reusable card components
-const CardHeader = memo(({ children }) => (
-  <div className="flex flex-col space-y-1.5 p-6">{children}</div>
-));
+interface Question {
+  Question: string;
+  Options: { A: string; B: string; C: string; D: string };
+  Answer: string;
+}
 
-const CardTitle = memo(({ children }) => (
-  <h3 className="text-2xl font-semibold leading-none tracking-tight">{children}</h3>
-));
+interface QuizState {
+  apiKey: string;
+  userDetails: {
+    grade: number;
+    subject: string;
+    topic: string;
+    difficulty: string;
+    numQuestions: number;
+  };
+  questions: Question[];
+  score: number;
+  answers: (string | null)[];
+  isLoading: boolean;
+  error: string | null;
+  showResults: boolean;
+}
 
-const CardContent = memo(({ children }) => (
-  <div className="p-6 pt-0">{children}</div>
-));
-
-// Extracted QuizSetupScreen component
-const QuizSetupScreen = memo(({ quizSetup, onInputChange, onStartQuiz }) => (
-  <div className="bg-white rounded-2xl p-8 shadow-lg animate-fade-in">
-    <CardHeader>
-      <CardTitle className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-        <Book className="w-6 h-6 text-blue-600" />
-        Knowledge Check Quiz
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <input
-          type="text"
-          placeholder="Grade (e.g., 10th, 12th)"
-          className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500"
-          value={quizSetup.grade}
-          onChange={(e) => onInputChange(e, 'grade')}
-        />
-        <input
-          type="text"
-          placeholder="Subject"
-          className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500"
-          value={quizSetup.subject}
-          onChange={(e) => onInputChange(e, 'subject')}
-        />
-        <input
-          type="text"
-          placeholder="Topic"
-          className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500"
-          value={quizSetup.topic}
-          onChange={(e) => onInputChange(e, 'topic')}
-        />
-        <select
-          className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500"
-          value={quizSetup.difficulty}
-          onChange={(e) => onInputChange(e, 'difficulty')}
-        >
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
-        </select>
-        <input
-          type="number"
-          placeholder="Number of Questions"
-          className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500"
-          value={quizSetup.questionCount}
-          onChange={(e) => onInputChange(e, 'questionCount')}
-          min="1"
-          max="10"
-        />
-      </div>
-      <button
-        onClick={onStartQuiz}
-        disabled={!quizSetup.grade || !quizSetup.subject || !quizSetup.topic}
-        className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg
-                  hover:scale-[1.02] transition-all duration-300 shadow-md hover:shadow-lg
-                  disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-      >
-        Start Quiz
-      </button>
-    </CardContent>
-  </div>
-));
-
-// Extracted StudyAssistant component
-const StudyAssistant = memo(({ query, response, onQueryChange, onGetHelp }) => (
-  <div className="mt-8 pt-8 border-t">
-    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-      <Brain className="w-5 h-5 text-purple-600" />
-      Study Assistant
-    </h3>
-    <div className="space-y-4">
-      <input
-        type="text"
-        placeholder="Ask a question about this topic..."
-        className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-purple-500"
-        value={query}
-        onChange={onQueryChange}
-      />
-      <button
-        onClick={onGetHelp}
-        className="px-4 py-2 text-purple-600 border border-purple-600 rounded-lg
-                    hover:bg-purple-50 transition-all duration-300"
-      >
-        Get Help
-      </button>
-      {response && (
-        <div className="p-4 bg-purple-50 rounded-lg">
-          {response}
-        </div>
-      )}
-    </div>
-  </div>
-));
-
-// Extracted QuizQuestionScreen component
-const QuizQuestionScreen = memo(({ 
-  currentQuestion,
-  questions,
-  isVoicePlaying,
-  onVoicePlayback,
-  onSubmitAnswer,
-  studyAssistantProps
-}) => (
-  <div className="bg-white rounded-2xl p-8 shadow-lg animate-fade-in">
-    <div className="mb-8">
-      <div className="flex justify-between items-center mb-4">
-        <span className="text-sm text-gray-500">Question {currentQuestion + 1} of {questions.length}</span>
-        <button
-          onClick={onVoicePlayback}
-          className="flex items-center gap-2 text-blue-600"
-        >
-          <Volume2 className={`w-5 h-5 ${isVoicePlaying ? 'animate-pulse' : ''}`} />
-          {isVoicePlaying ? 'Stop' : 'Listen'}
-        </button>
-      </div>
-      
-      <h2 className="text-xl font-semibold mb-6">{questions[currentQuestion]?.question}</h2>
-      
-      <div className="space-y-4">
-        {questions[currentQuestion]?.options.map((option, index) => (
-          <button
-            key={index}
-            onClick={() => onSubmitAnswer(index)}
-            className="w-full p-4 text-left rounded-lg border hover:bg-blue-50 hover:border-blue-300
-                      transition-all duration-300"
-          >
-            {option}
-          </button>
-        ))}
-      </div>
-    </div>
-    <StudyAssistant {...studyAssistantProps} />
-  </div>
-));
-
-// Extracted ResultsScreen component
-const ResultsScreen = memo(({ questions, answers, onRetakeQuiz }) => {
-  const correctAnswers = answers.filter(
-    (answer, index) => answer.selected === questions[index].correctAnswer
-  ).length;
-  
-  return (
-    <div className="bg-white rounded-2xl p-8 shadow-lg animate-fade-in">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-          <BarChart className="w-6 h-6 text-blue-600" />
-          Quiz Results
-        </h2>
-        
-        <div className="p-6 bg-blue-50 rounded-xl mb-8">
-          <h3 className="text-xl font-semibold mb-4">Performance Summary</h3>
-          <p className="text-gray-700">
-            You answered {correctAnswers} out of {questions.length} questions correctly ({(correctAnswers/questions.length * 100).toFixed(1)}%).
-          </p>
-        </div>
-
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold">Question Review</h3>
-          {questions.map((question, index) => (
-            <div key={index} className="p-4 border rounded-lg">
-              <p className="font-medium mb-2">{question.question}</p>
-              <p className="text-green-600">Correct Answer: {question.options[question.correctAnswer]}</p>
-              <p className={`${answers[index].selected === question.correctAnswer ? 'text-green-600' : 'text-red-600'}`}>
-                Your Answer: {question.options[answers[index].selected]}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <button
-        onClick={onRetakeQuiz}
-        className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg
-                  hover:scale-[1.02] transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-      >
-        <RefreshCcw className="w-5 h-5" />
-        Retake Quiz
-      </button>
-    </div>
-  );
-});
-
-// Main component
-const KnowledgeCheckQuiz = () => {
-  const [quizSetup, setQuizSetup] = useState({
-    grade: '',
-    subject: '',
-    topic: '',
-    difficulty: 'medium',
-    questionCount: 5
-  });
-  
-  const [currentScreen, setCurrentScreen] = useState('setup');
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState([]);
-  const [studyAssistantQuery, setStudyAssistantQuery] = useState('');
-  const [assistantResponse, setAssistantResponse] = useState('');
-  const [isVoicePlaying, setIsVoicePlaying] = useState(false);
-  const [questions, setQuestions] = useState([]);
-
-  // Generate questions based on quiz setup
-  const generateQuestions = useCallback((count) => {
-    const sampleQuestions = [
-      {
-        id: 1,
-        question: "What is the capital of France?",
-        options: ["London", "Berlin", "Paris", "Madrid"],
-        correctAnswer: 2
-      },
-      {
-        id: 2,
-        question: "Which planet is known as the Red Planet?",
-        options: ["Venus", "Mars", "Jupiter", "Saturn"],
-        correctAnswer: 1
-      },
-      {
-        id: 3,
-        question: "What is the chemical symbol for gold?",
-        options: ["Ag", "Fe", "Au", "Cu"],
-        correctAnswer: 2
-      },
-      {
-        id: 4,
-        question: "Who wrote 'Romeo and Juliet'?",
-        options: ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"],
-        correctAnswer: 1
-      },
-      {
-        id: 5,
-        question: "What is the largest organ in the human body?",
-        options: ["Brain", "Heart", "Liver", "Skin"],
-        correctAnswer: 3
-      },
-      {
-        id: 6,
-        question: "Which continent is the largest?",
-        options: ["North America", "Africa", "Asia", "Europe"],
-        correctAnswer: 2
-      },
-      {
-        id: 7,
-        question: "What is the chemical formula for water?",
-        options: ["CO2", "H2O", "O2", "N2"],
-        correctAnswer: 1
-      },
-      {
-        id: 8,
-        question: "Who painted the Mona Lisa?",
-        options: ["Vincent van Gogh", "Leonardo da Vinci", "Pablo Picasso", "Michelangelo"],
-        correctAnswer: 1
-      },
-      {
-        id: 9,
-        question: "What is the square root of 144?",
-        options: ["10", "12", "14", "16"],
-        correctAnswer: 1
-      },
-      {
-        id: 10,
-        question: "Which element has the symbol 'Fe'?",
-        options: ["Gold", "Silver", "Iron", "Copper"],
-        correctAnswer: 2
-      }
-    ];
-
-    // If requested count is greater than available questions, return all questions
-    if (count >= sampleQuestions.length) {
-      return sampleQuestions;
-    }
-
-    // Randomly select the specified number of questions
-    const shuffled = [...sampleQuestions].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
-  }, []);
-
-  // Memoized handlers
-  const handleInputChange = useCallback((e, field) => {
-    const value = e.target.value;
-    setQuizSetup(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  }, []);
-
-  const handleStartQuiz = useCallback(() => {
-    setCurrentScreen('quiz');
-  }, []);
-
-  const handleSubmitAnswer = useCallback((selectedOption) => {
-    setAnswers(prev => [...prev, { 
-      questionId: questions[currentQuestion].id, 
-      selected: selectedOption 
-    }]);
-    
-    setCurrentQuestion(prev => {
-      if (prev < questions.length - 1) {
-        return prev + 1;
-      } else {
-        setCurrentScreen('results');
-        return prev;
-      }
-    });
-  }, [currentQuestion, questions]);
-
-  const handleVoicePlayback = useCallback(() => {
-    setIsVoicePlaying(prev => !prev);
-  }, []);
-
-  const handleStudyAssistant = useCallback(() => {
-    setAssistantResponse(`Here's help regarding ${studyAssistantQuery}`);
-  }, [studyAssistantQuery]);
-
-  const handleRetakeQuiz = useCallback(() => {
-    setCurrentScreen('setup');
-    setCurrentQuestion(0);
-    setAnswers([]);
-    setStudyAssistantQuery('');
-    setAssistantResponse('');
-    setQuizSetup({
-      grade: '',
+const QuizApplication = () => {
+  const [quiz, setQuiz] = useState<QuizState>({
+    apiKey: '',
+    userDetails: {
+      grade: 5,
       subject: '',
       topic: '',
-      difficulty: 'medium',
-      questionCount: 5
-    });
-  }, []);
+      difficulty: 'Beginner',
+      numQuestions: 10,
+    },
+    questions: [],
+    score: 0,
+    answers: [],
+    isLoading: false,
+    error: null,
+    showResults: false,
+  });
 
-  // Quiz initialization effect
-  useEffect(() => {
-    if (currentScreen === 'quiz') {
-      const newQuestions = generateQuestions(Number(quizSetup.questionCount));
-      setQuestions(newQuestions);
-      setCurrentQuestion(0);
-      setAnswers([]);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    if (name === 'apiKey') {
+      setQuiz((prev) => ({ ...prev, apiKey: value }));
+    } else {
+      setQuiz((prev) => ({
+        ...prev,
+        userDetails: { ...prev.userDetails, [name]: value },
+      }));
     }
-  }, [currentScreen, quizSetup.questionCount, generateQuestions]);
-
-  // Voice playback effect
-  useEffect(() => {
-    if (isVoicePlaying) {
-      // Voice playback logic would go here
-      return () => {
-        // Cleanup voice playback
-      };
-    }
-  }, [isVoicePlaying]);
-
-  // Memoized study assistant props
-  const studyAssistantProps = {
-    query: studyAssistantQuery,
-    response: assistantResponse,
-    onQueryChange: (e) => setStudyAssistantQuery(e.target.value),
-    onGetHelp: handleStudyAssistant
   };
 
-//   return (
-//     <div className="max-w-4xl mx-auto px-4 py-8">
-//       {currentScreen === 'setup' && (
-//         <QuizSetupScreen 
-//           quizSetup={quizSetup}
-//           onInputChange={handleInputChange}
-//           onStartQuiz={handleStartQuiz}
-//         />
-//       )}
-//       {currentScreen === 'quiz' && (
-//         <QuizQuestionScreen 
-//           currentQuestion={currentQuestion}
-//           questions={questions}
-//           isVoicePlaying={isVoicePlaying}
-//           onVoicePlayback={handleVoicePlayback}
-//           onSubmitAnswer={handleSubmit
+  const generateQuiz = async () => {
+    if (!quiz.apiKey || !quiz.userDetails.subject || !quiz.userDetails.topic) {
+      setQuiz((prev) => ({ ...prev, error: 'Please fill in all fields.' }));
+      return;
+    }
+
+    setQuiz((prev) => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      // Simulate API call to generate questions
+      const prompt = `Generate ${quiz.userDetails.numQuestions} ${quiz.userDetails.subject} questions about ${quiz.userDetails.topic} for a ${quiz.userDetails.grade}th grade student at ${quiz.userDetails.difficulty} level.`;
+      const response = await fetch('https://api.example.com/generate-quiz', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${quiz.apiKey}`,
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate quiz questions.');
+      }
+
+      const data = await response.json();
+      setQuiz((prev) => ({
+        ...prev,
+        questions: data.questions,
+        answers: Array(data.questions.length).fill(null),
+        isLoading: false,
+      }));
+    } catch (err) {
+      setQuiz((prev) => ({
+        ...prev,
+        error: 'Failed to generate quiz. Please try again.',
+        isLoading: false,
+      }));
+    }
+  };
+
+  const handleAnswerSelect = (index: number, answer: string) => {
+    setQuiz((prev) => ({
+      ...prev,
+      answers: prev.answers.map((a, i) => (i === index ? answer : a)),
+    }));
+  };
+
+  const calculateScore = () => {
+    const score = quiz.questions.reduce((acc, question, index) => {
+      return acc + (quiz.answers[index] === question.Answer ? 1 : 0);
+    }, 0);
+
+    setQuiz((prev) => ({ ...prev, score, showResults: true }));
+  };
+
+  const resetQuiz = () => {
+    setQuiz((prev) => ({
+      ...prev,
+      questions: [],
+      answers: [],
+      score: 0,
+      showResults: false,
+    }));
+  };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {currentScreen === 'setup' && (
-        <QuizSetupScreen 
-          quizSetup={quizSetup}
-          onInputChange={handleInputChange}
-          onStartQuiz={handleStartQuiz}
-        />
-      )}
-      {currentScreen === 'quiz' && (
-        <QuizQuestionScreen 
-          currentQuestion={currentQuestion}
-          questions={questions}
-          isVoicePlaying={isVoicePlaying}
-          onVoicePlayback={handleVoicePlayback}
-          onSubmitAnswer={handleSubmitAnswer}
-          studyAssistantProps={studyAssistantProps}
-        />
-      )}
-      {currentScreen === 'results' && (
-        <ResultsScreen 
-          questions={questions}
-          answers={answers}
-          onRetakeQuiz={handleRetakeQuiz}
-        />
+    <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in">
+      {/* Header */}
+      <div className="bg-white rounded-2xl p-8 shadow-lg mb-8 animate-slide-in-top">
+        <div className="flex items-center space-x-4">
+          <BookOpen className="w-8 h-8 text-blue-600 transition-transform duration-300 hover:scale-110" />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">🎓 Quiz Application</h1>
+            <p className="text-gray-600">Test your knowledge on any topic!</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-8 md:grid-cols-[1fr_2fr]">
+        {/* Input Section */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg transform transition-all duration-500 hover:shadow-xl animate-slide-in-left">
+          <h2 className="text-lg font-semibold mb-6 text-gradient bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Quiz Parameters
+          </h2>
+          <div className="space-y-6">
+            <input
+              type="password"
+              name="apiKey"
+              value={quiz.apiKey}
+              onChange={handleInputChange}
+              placeholder="Enter Groq API Key"
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 hover:border-blue-300 focus:scale-[1.02]"
+            />
+            <input
+              type="number"
+              name="grade"
+              value={quiz.userDetails.grade}
+              onChange={handleInputChange}
+              placeholder="Grade Level"
+              min={1}
+              max={12}
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 hover:border-blue-300 focus:scale-[1.02]"
+            />
+            <input
+              type="text"
+              name="subject"
+              value={quiz.userDetails.subject}
+              onChange={handleInputChange}
+              placeholder="Subject"
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 hover:border-blue-300 focus:scale-[1.02]"
+            />
+            <input
+              type="text"
+              name="topic"
+              value={quiz.userDetails.topic}
+              onChange={handleInputChange}
+              placeholder="Topic"
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 hover:border-blue-300 focus:scale-[1.02]"
+            />
+            <select
+              name="difficulty"
+              value={quiz.userDetails.difficulty}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 hover:border-blue-300 focus:scale-[1.02]"
+            >
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+            </select>
+            <input
+              type="number"
+              name="numQuestions"
+              value={quiz.userDetails.numQuestions}
+              onChange={handleInputChange}
+              placeholder="Number of Questions"
+              min={5}
+              max={20}
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 hover:border-blue-300 focus:scale-[1.02]"
+            />
+            <button
+              onClick={generateQuiz}
+              disabled={quiz.isLoading}
+              className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:scale-[1.02] disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed transition-all duration-300 shadow-md hover:shadow-lg"
+            >
+              {quiz.isLoading ? 'Generating...' : '🚀 Start Quiz'}
+            </button>
+            {quiz.error && (
+              <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-lg">
+                {quiz.error}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Quiz Section */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg animate-slide-in-right">
+          {quiz.questions.length > 0 ? (
+            <>
+              <h2 className="text-lg font-semibold mb-6">Quiz Questions</h2>
+              {quiz.questions.map((question, index) => (
+                <div key={index} className="mb-6">
+                  <h3 className="font-semibold text-gray-800">Question {index + 1}</h3>
+                  <p className="text-gray-600">{question.Question}</p>
+                  <div className="mt-4 space-y-2">
+                    {Object.entries(question.Options).map(([key, value]) => (
+                      <button
+                        key={key}
+                        onClick={() => handleAnswerSelect(index, value)}
+                        className={`w-full text-left px-4 py-2 rounded-lg border ${
+                          quiz.answers[index] === value
+                            ? 'border-blue-600 bg-blue-50'
+                            : 'border-gray-200 hover:bg-gray-50'
+                        } transition-all duration-300`}
+                      >
+                        {value}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <button
+                onClick={calculateScore}
+                className="w-full py-3 px-6 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg hover:scale-[1.02] transition-all duration-300 shadow-md hover:shadow-lg"
+              >
+                Submit Quiz
+              </button>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-64 text-gray-400 animate-pulse">
+              <Rocket className="w-12 h-12 mb-2" />
+              <p>Enter quiz parameters to get started</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Results Section */}
+      {quiz.showResults && (
+        <div className="mt-8 bg-white rounded-2xl p-6 shadow-lg animate-slide-in-bottom">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Quiz Results</h2>
+          <div className="flex items-center space-x-4 mb-6">
+            <div className="text-4xl font-bold text-blue-600">
+              {quiz.score}/{quiz.questions.length}
+            </div>
+            <div className="flex-1">
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-600"
+                  style={{ width: `${(quiz.score / quiz.questions.length) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-6">
+            {quiz.questions.map((question, index) => (
+              <div key={index} className="bg-gray-50 rounded-xl p-5">
+                <h3 className="font-semibold text-gray-800">Question {index + 1}</h3>
+                <p className="text-gray-600">{question.Question}</p>
+                <div className="mt-4 space-y-2">
+                  {Object.entries(question.Options).map(([key, value]) => (
+                    <div
+                      key={key}
+                      className={`px-4 py-2 rounded-lg border ${
+                        quiz.answers[index] === value
+                          ? quiz.answers[index] === question.Answer
+                            ? 'border-green-600 bg-green-50'
+                            : 'border-red-600 bg-red-50'
+                          : question.Answer === value
+                          ? 'border-green-600 bg-green-50'
+                          : 'border-gray-200'
+                      }`}
+                    >
+                      {value}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex items-center space-x-2">
+                  {quiz.answers[index] === question.Answer ? (
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-red-600" />
+                  )}
+                  <span className="text-sm text-gray-600">
+                    Your answer: {quiz.answers[index] || 'Not answered'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={resetQuiz}
+            className="w-full mt-6 py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:scale-[1.02] transition-all duration-300 shadow-md hover:shadow-lg"
+          >
+            Take Another Quiz
+          </button>
+        </div>
       )}
     </div>
   );
 };
 
-export default KnowledgeCheckQuiz;
+export default QuizApplication;
