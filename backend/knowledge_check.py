@@ -6,11 +6,49 @@ import re
 from groq import Groq
 from dotenv import load_dotenv
 import os
+from fastapi.middleware.cors import CORSMiddleware
+
+from fastapi import Request
+
+
+
+# Add this right after creating the FastAPI app instance
+app = FastAPI(title="Quiz API")
+
+@app.options("/generate-quiz")
+async def generate_quiz_options():
+    return {}
+
+# # Add CORS middleware
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],  # In production, replace with your frontend URL
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 # Load environment variables
 load_dotenv()
 
 app = FastAPI(title="Quiz API")
+
+# Configure CORS
+origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",  # If you're using Vite
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+]
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
 
 # Use environment variable for API key
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -93,7 +131,7 @@ def extract_questions(response: str) -> List[dict]:
     
     return questions
 
-@app.post("/generate-quiz", response_model=List[QuizQuestion])
+@app.post("/generate-quiz")
 async def generate_quiz(params: QuizParameters):
     """Generate quiz questions based on provided parameters"""
     if not GROQ_API_KEY:
@@ -122,7 +160,7 @@ async def generate_quiz(params: QuizParameters):
         )
         
         questions = extract_questions(response.choices[0].message.content)
-        return questions
+        return questions  # Return the questions directly
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
