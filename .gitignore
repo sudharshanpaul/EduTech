@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 
 venv/
+backend/__pycache__/ai-tutor.cpython-310.pyc
+backend/__pycache__/bos.cpython-310.pyc
+backend/__pycache__/helper.cpython-310.pyc
+backend/__pycache__/puzzlesolver.cpython-310.pyc
+backend/__pycache__/sosexamprep.cpython-310.pyc

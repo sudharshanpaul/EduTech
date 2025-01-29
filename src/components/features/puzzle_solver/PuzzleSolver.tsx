@@ -36,7 +36,7 @@ const PuzzleSolver = () => {
     formData.append('problem_description', problemDescription);
 
     try {
-      const response = await fetch('http://localhost:8000/solve-puzzle', {
+      const response = await fetch('http://localhost:8003/solve-puzzle', {
         method: 'POST',
         body: formData,
       });
