@@ -51,7 +51,7 @@ class TopicRequest(BaseModel):
     topic: str
 
 # Get API key from environment variable
-GROQ_API_KEY = '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'
+GROQ_API_KEY = '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'
 if not GROQ_API_KEY:
     raise ValueError("GROQ_API_KEY must be set in environment variables")
 

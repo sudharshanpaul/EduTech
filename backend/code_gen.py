@@ -112,7 +112,7 @@ import re
 import os
 
 # Your Groq API key
-GROQ_API_KEY = "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"  # Replace with your actual API key
+GROQ_API_KEY = "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"  # Replace with your actual API key
 
 # Initialize FastAPI app
 app = FastAPI(title="Groq Code Generation API")
