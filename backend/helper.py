@@ -7,7 +7,12 @@ import warnings as warn
 warn.filterwarnings("ignore")
 from langchain_groq import ChatGroq
 import os
-os.environ.get('HF_TOKEN', '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')
+
+from dotenv import load_dotenv
+
+load_dotenv()
+os.environ["HF_TOKEN"] = os.getenv("HF_TOKEN")
+
 from langchain_community.vectorstores import FAISS
 
 def save_bos_to_db(file_path):
