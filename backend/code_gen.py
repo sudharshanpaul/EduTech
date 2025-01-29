@@ -98,15 +98,14 @@
 #     global chatbot
 #     chatbot = GroqCodeChatbot()
 #     return {"message": "Chat history cleared successfully"}
-
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 from langchain_groq import ChatGroq
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationChain
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_community.chat_message_histories import ChatMessageHistory
 from datetime import datetime
 import re
 import os
@@ -140,7 +139,33 @@ class ChatResponse(BaseModel):
     explanation: str
     messages: List[Message]
 
-def separate_code_and_text(input_text: str):
+def extract_explanation(text):
+    """
+    Removes code blocks enclosed in triple backticks and returns only the explanation.
+    
+    Args:
+        text (str): Input text containing code blocks and explanations
+        
+    Returns:
+        str: Text with code blocks removed, containing only explanations
+    """
+    import re
+    
+    # Remove code blocks enclosed in triple backticks (including language specifier)
+    pattern = r"```[\w]*\n[\s\S]*?```"
+    cleaned_text = re.sub(pattern, "", text)
+    
+    # Remove any remaining backtick markers
+    cleaned_text = cleaned_text.replace("```", "")
+    
+    # Remove extra blank lines
+    cleaned_text = re.sub(r'\n\s*\n', '\n\n', cleaned_text)
+    
+    # Strip leading/trailing whitespace
+    cleaned_text = cleaned_text.strip()
+    
+    return cleaned_text
+def separate_code_and_text(input_text: str) -> tuple[List[str], str]:
     # Find all code blocks
     code_blocks = re.findall(r"```(?:\w+)?\n(.*?)```", input_text, re.DOTALL)
     
@@ -164,35 +189,40 @@ class GroqCodeChatbot:
         self.prompt = ChatPromptTemplate.from_messages([
             ("system", """You are a helpful code generation assistant. 
             When providing code examples, always wrap them in triple backticks (```).
-            Separate your explanations from the code clearly."""),
+            Separate your explanations from the code clearly.
+            Focus on providing clear, well-documented code with comments."""),
             MessagesPlaceholder(variable_name="history"),
             ("human", "{input}")
         ])
         
-        self.memory = ConversationBufferMemory(return_messages=True)
+        self.history = ChatMessageHistory()
         
-        self.conversation = ConversationChain(
-            llm=self.llm,
-            prompt=self.prompt,
-            memory=self.memory,
-            verbose=False
+        self.conversation = RunnableWithMessageHistory(
+            self.prompt | self.llm,  # Chain the prompt template with the LLM
+            lambda session_id: self.history,
+            input_messages_key="input",
+            history_messages_key="history"
         )
 
     def generate_response(self, prompt: str) -> tuple[List[str], str]:
         try:
-            response = self.conversation.predict(input=prompt)
-            code_blocks, explanation = separate_code_and_text(response)
-            return code_blocks, explanation
+            response = self.conversation.invoke(
+                {"input": prompt},
+                config={"configurable": {"session_id": "default"}}
+            )
+            code_blocks, explanation = separate_code_and_text(response.content)
+            return code_blocks, extract_explanation(explanation)
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
     def get_messages(self) -> List[Message]:
         messages = []
-        for msg in self.memory.chat_memory.messages:
+        for msg in self.history.messages:
             messages.append(
                 Message(
-                    role="human" if msg.type == "human" else "ai",
-                    content=msg.content
+                    role="human" if msg.type == "human" else "assistant",
+                    content=msg.content,
+                    timestamp=datetime.now()
                 )
             )
         return messages
@@ -222,3 +252,7 @@ async def clear_chat_history():
     global chatbot
     chatbot = GroqCodeChatbot()
     return {"message": "Chat history cleared successfully"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
