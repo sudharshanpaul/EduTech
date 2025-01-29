@@ -7,7 +7,7 @@ const navigation: NavigationItem[] = [
   { name: 'Dashboard', path: '/', icon: 'Home' },
   { name: 'BOS Generator', path: '/bos', icon: 'BookOpen' },
   { name: 'AI Tutor', path: '/ai_tutor', icon: 'Brain' },
-  { name: 'Knowledge Check', path: '/quiz', icon: 'CheckSquare' },
+  { name: 'Knowledge Check', path: '/knowledge_check', icon: 'CheckSquare' },
   { name: 'Flowchart Generator', path: '/flowchart_generator', icon: 'Map' },
   { name: 'Resource Generator', path: '/resource_generator', icon: 'Book' },
   { name: 'SOS Exam Prep', path: '/sos_exam_prep_kit', icon: 'Lightbulb' },

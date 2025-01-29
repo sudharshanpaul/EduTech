@@ -23,7 +23,7 @@ const features: Feature[] = [
   title: 'Knowledge Check',
   description: 'Test your understanding with topic-specific quizzes',
   icon: 'CheckSquare',
-  path: '/quiz'
+  path: '/knowledge_check'
 },
   {
     id: '4',

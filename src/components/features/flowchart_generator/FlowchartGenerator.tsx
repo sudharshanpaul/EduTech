@@ -248,7 +248,7 @@ const FlowChartGenerator = () => {
     setFlowchartData(null);
 
     try {
-      const response = await fetch('http://localhost:8000/generate-flowchart/', {
+      const response = await fetch('http://localhost:8001/generate-flowchart/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
