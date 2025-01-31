@@ -1,3 +1,8 @@
 streamlit
 langchain
 langchain-groq
+fastapi==0.104.1
+uvicorn==0.24.0
+langchain-groq
+pydantic==2.5.2
+python-multipart==0.0.6

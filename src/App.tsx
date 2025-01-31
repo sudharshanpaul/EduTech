@@ -10,7 +10,7 @@ import FlowChartGenerator from './components/features/flowchart_generator/Flowch
 import PuzzleSolver from './components/features/puzzle_solver/PuzzleSolver';
 import AITutor from './components/features/ai_tutor/AI_Tutor';
 import KnowledgeCheckQuiz from './components/features/knowledge_check/Knowledge_Check'
-
+import Canvas from './components/features/canvas/Canvas';
 function AppContent() {
   const location = useLocation();
 
@@ -27,6 +27,7 @@ function AppContent() {
         <Route path="/puzzle_solver" element={<PuzzleSolver />} />
         <Route path="/ai_tutor" element={<AITutor />} />
         <Route path="/knowledge_check" element={<KnowledgeCheckQuiz />} />
+        <Route path="/canvas" element={<Canvas />} />
       </Routes>
     </Layout>
   );

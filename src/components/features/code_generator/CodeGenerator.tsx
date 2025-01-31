@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Copy, Terminal, Info, Rocket } from 'lucide-react';
 
