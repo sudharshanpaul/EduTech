@@ -178,7 +178,7 @@ const Canvas: React.FC = () => {
     const canvas = canvasRef.current;
     if (canvas) {
       try {
-        const response = await axios.post("http://localhost:8900/calculate", {
+        const response = await axios.post("http://127.0.0.1:8008/calculate", {
           image: canvas.toDataURL('image/avif'),
           dict_of_vars: dictOfVars,
           action: selectedAction,

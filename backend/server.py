@@ -57,7 +57,8 @@ if __name__ == "__main__":
         "knowledge_check",
         "puzzlesolver",
         "resourse",
-        "sosexamprep"
+        "sosexamprep",
+        'canvas'
     ]
     
     manager = ServerManager(base_port=8000)
