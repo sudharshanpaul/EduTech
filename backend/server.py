@@ -60,10 +60,7 @@ if __name__ == "__main__":
         "sosexamprep"
     ]
     
-    # Initialize the server manager
     manager = ServerManager(base_port=8000)
-    
-    # Set up signal handler for graceful shutdown
     signal.signal(signal.SIGINT, signal_handler)
     
     try:
