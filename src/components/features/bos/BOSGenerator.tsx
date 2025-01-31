@@ -489,7 +489,7 @@
 //     try {
 //       setAnalyzing(true);
 //       setError('');
-//       const response = await fetch('http://localhost:8000/upload_bos', {
+//       const response = await fetch('http://127.0.0.1:8001/upload_bos', {
 //         method: 'POST',
 //         body: formData,
 //       });
@@ -511,7 +511,7 @@
 //   const getUnits = async () => {
 //     try {
 //       setError('');
-//       const response = await fetch('http://localhost:8000/get_units', {
+//       const response = await fetch('http://127.0.0.1:8001/get_units', {
 //         method: 'POST',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -535,7 +535,7 @@
 //   const getTopics = async () => {
 //     try {
 //       setError('');
-//       const response = await fetch('http://localhost:8000/get_topics', {
+//       const response = await fetch('http://127.0.0.1:8001/get_topics', {
 //         method: 'POST',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -563,7 +563,7 @@
 //     try {
 //       setGenerating(true);
 //       setError('');
-//       const response = await fetch('http://localhost:8000/get_content', {
+//       const response = await fetch('http://127.0.0.1:8001/get_content', {
 //         method: 'POST',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -924,7 +924,7 @@ const BOSGenerator = () => {
     try {
       setAnalyzing(true);
       setError('');
-      const response = await fetch('http://127.0.0.1:8000/upload_bos', {
+      const response = await fetch('http://127.0.0.1:8001/upload_bos', {
         method: 'POST',
         body: formData,
       });
@@ -946,7 +946,7 @@ const BOSGenerator = () => {
   const getUnits = async () => {
     try {
       setError('');
-      const response = await fetch('http://localhost:8000/get_units', {
+      const response = await fetch('http://127.0.0.1:8001/get_units', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -970,7 +970,7 @@ const BOSGenerator = () => {
   const getTopics = async () => {
     try {
       setError('');
-      const response = await fetch('http://localhost:8000/get_topics', {
+      const response = await fetch('http://127.0.0.1:8001/get_topics', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -998,7 +998,7 @@ const BOSGenerator = () => {
     try {
       setGenerating(true);
       setError('');
-      const response = await fetch('http://localhost:8000/get_content', {
+      const response = await fetch('http://127.0.0.1:8001/get_content', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

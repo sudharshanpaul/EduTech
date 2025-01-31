@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Copy, Terminal, Info, Rocket } from 'lucide-react';
 
@@ -19,7 +18,7 @@ const CodeGenerator = () => {
   const [error, setError] = useState('');
 
   const generateCode = async (prompt: string): Promise<CodeResponse> => {
-    const response = await fetch('http://127.0.0.1:8000/chat', {
+    const response = await fetch('http://127.0.0.1:8002/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

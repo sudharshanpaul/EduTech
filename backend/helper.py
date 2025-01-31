@@ -20,7 +20,6 @@ def save_bos_to_db(file_path):
     docs=loader.load()
     text_splitter=RecursiveCharacterTextSplitter(chunk_size=15000,chunk_overlap=3000)
     final_documents=text_splitter.split_documents(docs)
-    print(final_documents)
     embeddings=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     db=FAISS.from_documents(docs,embeddings)
     print(db)

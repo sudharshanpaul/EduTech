@@ -378,7 +378,7 @@ const QuizApplication = () => {
     setQuiz((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/generate-quiz', {
+      const response = await fetch('http://127.0.0.1:8004/generate-quiz', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -437,7 +437,7 @@ const QuizApplication = () => {
         questions: quiz.questions,
       };
 
-      const response = await fetch('http://localhost:8000/submit-quiz', {
+      const response = await fetch('http://127.0.0.1:8004/submit-quiz', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
