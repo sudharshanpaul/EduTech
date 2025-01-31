@@ -20,7 +20,7 @@ load_dotenv()
 SERVER_URL = 'localhost'
 PORT = '8900'
 ENV = 'dev'
-GEMINI_API_KEY = "AIzaSyAiDWEilJt_uZ91SgogI5T9sq_VGgnxq6w"
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
 # Configure Gemini AI
 ai.configure(api_key=GEMINI_API_KEY)
